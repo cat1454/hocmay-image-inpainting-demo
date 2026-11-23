@@ -1690,6 +1690,10 @@
     let galleryLoaded = false;
     let hasImage = false;
     let hasMask = false;
+    let autoRunTimer = null;
+    let autoRunPending = false;
+    let inputRevision = 0;
+    const AUTO_RUN_DELAY_MS = 450;
 
     let currentViewMode = 'composite';
     let latestResponse = null;
@@ -1771,7 +1775,7 @@
         lama_ffc: 'LaMa FFC',
       };
       document.getElementById('runModeSummary').textContent = `Chế độ: ${names[mode]}`;
-      invalidateResults(hasImage
+      markInputsChanged(hasImage
         ? 'Chế độ đã đổi. Bấm Chạy để cập nhật kết quả.'
         : 'Chọn ảnh để bắt đầu.');
       updateRunButton();
@@ -1827,7 +1831,7 @@
       await loadImageToCanvas(p.image_url);
       await loadMaskToCanvas(p.mask_url);
       markImageReady();
-      invalidateResults('Ảnh mẫu đã chọn. Bấm Chạy để xem kết quả.');
+      markInputsChanged('Ảnh mẫu đã chọn. Đang cập nhật kết quả…');
       document.getElementById('presetPicker').open = false;
     }
 
@@ -1835,7 +1839,7 @@
       if (activePresetIdx >= 0 && presetsData[activePresetIdx]) {
         saveUndoState();
         await loadMaskToCanvas(presetsData[activePresetIdx].mask_url);
-        invalidateResults('Mask mẫu đã khôi phục. Bấm Chạy để cập nhật.');
+        markInputsChanged('Mask mẫu đã khôi phục. Đang cập nhật…');
         updateRunButton();
       }
     }
@@ -1851,6 +1855,27 @@
       emptyState.textContent = message;
       emptyState.hidden = false;
       setRunStatus(message);
+    }
+
+    function markInputsChanged(message) {
+      inputRevision += 1;
+      autoRunPending = false;
+      invalidateResults(message);
+      if (hasImage && hasMask) scheduleAutoRun();
+    }
+
+    function scheduleAutoRun(delay = AUTO_RUN_DELAY_MS) {
+      if (!hasImage || !hasMask) return;
+      if (autoRunTimer) clearTimeout(autoRunTimer);
+      setRunStatus('Mask đã đổi. Đang chuẩn bị cập nhật…');
+      autoRunTimer = setTimeout(() => {
+        autoRunTimer = null;
+        if (isRunningInference) {
+          autoRunPending = true;
+          return;
+        }
+        runInpaint();
+      }, delay);
     }
 
     function updateRunButton() {
@@ -1891,7 +1916,7 @@
       const prev = undoStack.pop();
       binMaskCtx.putImageData(prev, 0, 0);
       renderVisibleMask();
-      invalidateResults('Mask đã thay đổi. Bấm Chạy để cập nhật.');
+      markInputsChanged('Mask đã thay đổi. Đang cập nhật…');
     }
 
     function clearMask() {
@@ -1900,7 +1925,7 @@
       binMaskCtx.fillStyle = '#000000';
       binMaskCtx.fillRect(0, 0, 256, 256);
       renderVisibleMask();
-      invalidateResults('Mask đã xóa. Tô vùng cần xóa rồi bấm Chạy.');
+      markInputsChanged('Mask đã xóa. Tô lại vùng cần xóa để chạy.');
     }
 
     function loadImageToCanvas(dataUrl) {
@@ -2065,7 +2090,7 @@
           renderVisibleMask();
         }
         lastPt = null;
-        invalidateResults('Mask đã thay đổi. Bấm Chạy để cập nhật.');
+        markInputsChanged('Mask đã thay đổi. Đang cập nhật…');
       });
     }
 
@@ -2096,7 +2121,7 @@
         if (!res.ok) throw new Error('Không tạo được mask.');
         const data = await res.json();
         await loadMaskToCanvas(data.mask_url);
-        invalidateResults('Mask đã tạo. Bấm Chạy để xem kết quả.');
+        markInputsChanged('Mask đã tạo. Đang cập nhật…');
       } catch (err) {
         setRunStatus(err.message || 'Không tạo được mask.');
       }
@@ -2113,7 +2138,7 @@
       document.getElementById('restoreMaskBtn').disabled = true;
       document.querySelectorAll('.preset-item').forEach(el => el.classList.remove('active'));
       setRunStatus('Đang đọc ảnh…');
-      invalidateResults('Đang đọc ảnh…');
+      markInputsChanged('Đang đọc ảnh…');
       const reader = new FileReader();
       reader.onload = (e) => {
         const im = new Image();
@@ -2124,7 +2149,7 @@
           imgCtx.clearRect(0, 0, 256, 256);
           imgCtx.drawImage(im, sx, sy, s, s, 0, 0, 256, 256);
           markImageReady();
-          invalidateResults('Ảnh đã sẵn sàng. Tô vùng cần xóa rồi bấm Chạy.');
+          markInputsChanged('Ảnh đã sẵn sàng. Tô mask để tự cập nhật kết quả.');
         };
         im.onerror = () => setRunStatus('Không đọc được ảnh này. Hãy chọn JPG hoặc PNG.');
         im.src = e.target.result;
@@ -2139,7 +2164,13 @@
     // -----------------------------------------------------------------------
     async function runInpaint() {
       if (isRunningInference || !hasImage || !hasMask) return;
+      if (autoRunTimer) {
+        clearTimeout(autoRunTimer);
+        autoRunTimer = null;
+      }
+      autoRunPending = false;
       isRunningInference = true;
+      const requestRevision = inputRevision;
       const selected_models = runMode === 'all' ? ALL_3 : [runMode];
       updateRunButton();
       setRunStatus(`Đang chạy ${selected_models.length} model…`);
@@ -2155,7 +2186,13 @@
         });
 
         if (!res.ok) throw new Error('Không chạy được mô hình. Thử lại sau.');
-        latestResponse = await res.json();
+        const result = await res.json();
+        if (requestRevision !== inputRevision) {
+          autoRunPending = true;
+          setRunStatus('Mask đã đổi trong lúc chạy. Đang cập nhật lại…');
+          return;
+        }
+        latestResponse = result;
         document.getElementById('resultsEmptyState').hidden = true;
         document.getElementById('resultCards').hidden = false;
         renderResults();
@@ -2174,6 +2211,10 @@
       } finally {
         isRunningInference = false;
         updateRunButton();
+        if (autoRunPending && hasImage && hasMask) {
+          autoRunPending = false;
+          scheduleAutoRun(0);
+        }
       }
     }
 
