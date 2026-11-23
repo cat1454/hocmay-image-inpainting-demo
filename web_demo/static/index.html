@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Inpainting AI Studio — So Sánh Cùng Lúc 3 Model Khôi Phục Ảnh</title>
+  <title>Image Inpainting · So sánh 3 model</title>
   <style>
     :root {
       --bg-main: #0b0f19;
@@ -764,6 +764,489 @@
       border-radius: 10px;
       background: #fff;
     }
+
+    /* Lean comparison workspace */
+    body {
+      background: var(--bg-main);
+    }
+
+    .header {
+      background: var(--bg-panel);
+      backdrop-filter: none;
+      padding: 10px 18px;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      display: none;
+    }
+
+    .brand h1 {
+      font-size: 1rem;
+    }
+
+    .brand p {
+      font-size: 0.75rem;
+    }
+
+    .nav-tabs {
+      background: transparent;
+      border: 0;
+      padding: 0;
+      gap: 3px;
+    }
+
+    .tab-btn {
+      padding: 6px 10px;
+      font-size: 0.78rem;
+    }
+
+    .hw-badge {
+      padding: 5px 9px;
+      font-size: 0.73rem;
+    }
+
+    .hw-dot {
+      box-shadow: none;
+    }
+
+    .container {
+      max-width: 1600px;
+      padding: 12px 18px 32px;
+    }
+
+    .share-banner {
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+      margin: 0 0 10px;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .share-label {
+      color: var(--text-muted);
+      font-size: 0.74rem;
+    }
+
+    .link-chip {
+      max-width: min(560px, 70vw);
+      padding: 4px 7px 4px 10px;
+      font-size: 0.74rem;
+      border-radius: 7px;
+    }
+
+    #publicUrlText {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .copy-mini {
+      padding: 4px 7px;
+    }
+
+    .studio-grid {
+      grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    .panel,
+    .model-card,
+    .compare-box,
+    .gallery-card {
+      box-shadow: none;
+      border-radius: 10px;
+    }
+
+    .canvas-stage {
+      width: min(100%, 320px);
+      height: auto;
+      aspect-ratio: 1;
+      border: 1px solid var(--border);
+      box-shadow: none;
+      cursor: crosshair;
+    }
+
+    .canvas-stage canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    .canvas-stage:not(.has-image) {
+      cursor: default;
+    }
+
+    .canvas-stage:not(.has-image) canvas {
+      opacity: 0;
+    }
+
+    .canvas-empty {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 20px;
+      pointer-events: none;
+    }
+
+    .canvas-empty strong {
+      color: var(--text-main);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .canvas-empty span {
+      font-size: 0.76rem;
+    }
+
+    .canvas-stage.has-image .canvas-empty {
+      display: none;
+    }
+
+    .upload-row,
+    .action-row,
+    .run-controls,
+    .results-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .upload-row {
+      margin: 0 0 10px;
+    }
+
+    .upload-row > * {
+      flex: 1;
+    }
+
+    .action-row {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      margin: 8px 0;
+    }
+
+    .tool-row {
+      gap: 5px;
+      margin: 8px 0;
+    }
+
+    .tool-row .btn {
+      flex: 1;
+      padding: 6px 7px;
+      font-size: 0.73rem;
+    }
+
+    .btn-primary {
+      background: var(--accent-blue);
+      box-shadow: none;
+      padding: 9px 12px;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .slider-group {
+      margin: 8px 0;
+      background: transparent;
+      border: 0;
+      padding: 0 2px;
+    }
+
+    .compact-details {
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+      padding-top: 8px;
+    }
+
+    .compact-details > summary,
+    .advanced-results > summary {
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.77rem;
+      font-weight: 600;
+      list-style: none;
+      padding: 4px 0;
+    }
+
+    .compact-details > summary::-webkit-details-marker,
+    .advanced-results > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .compact-details > summary::after,
+    .advanced-results > summary::after {
+      content: '+';
+      float: right;
+      color: var(--text-muted);
+    }
+
+    .compact-details[open] > summary::after,
+    .advanced-results[open] > summary::after {
+      content: '−';
+    }
+
+    .bucket-grid {
+      margin: 7px 0 3px;
+    }
+
+    .preset-picker[open] {
+      position: relative;
+    }
+
+    .preset-picker > summary {
+      list-style: none;
+    }
+
+    .preset-picker > summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .preset-picker > summary {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .preset-picker .preset-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      max-height: 270px;
+      overflow: auto;
+      padding: 2px;
+    }
+
+    .preset-item {
+      border-width: 1px;
+    }
+
+    .run-controls {
+      align-items: stretch;
+      flex-direction: column;
+      margin-top: 9px;
+    }
+
+    #runStatus {
+      min-height: 1.2em;
+      color: var(--text-muted);
+      font-size: 0.73rem;
+    }
+
+    .run-mode-details .model-pills {
+      padding: 5px 0 2px;
+    }
+
+    .run-mode-details .model-pill {
+      padding: 5px 8px;
+      font-size: 0.72rem;
+    }
+
+    .results-heading {
+      margin: 0 0 10px;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    .results-empty {
+      padding: 22px 14px;
+      border: 1px dashed var(--border);
+      border-radius: 9px;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      text-align: center;
+    }
+
+    .cards-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+      margin-bottom: 10px;
+    }
+
+    .input-preview-card {
+      display: none !important;
+    }
+
+    .model-card {
+      padding: 9px;
+      border-width: 1px;
+    }
+
+    .model-card.winner {
+      box-shadow: none;
+    }
+
+    .card-head {
+      align-items: center;
+      min-height: 0;
+      margin-bottom: 7px;
+    }
+
+    .card-title {
+      font-size: 0.82rem;
+    }
+
+    .card-sub {
+      display: none;
+    }
+
+    .card-head .badge {
+      display: none;
+    }
+
+    .badge {
+      padding: 2px 6px;
+      font-size: 0.62rem;
+    }
+
+    .card-img-wrap {
+      margin-bottom: 5px;
+      border: 0;
+      background: var(--bg-main);
+    }
+
+    .metrics-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 5px;
+      padding: 5px 0 0;
+      background: transparent;
+      border: 0;
+      border-top: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .metric-box {
+      display: flex;
+      align-items: baseline;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .metric-box .m-label {
+      font-size: 0.61rem;
+      white-space: nowrap;
+    }
+
+    .metric-box .m-val {
+      font-size: 0.68rem;
+      white-space: nowrap;
+    }
+
+    .advanced-results {
+      border-top: 1px solid var(--border);
+      margin-top: 10px;
+    }
+
+    .advanced-results > summary {
+      padding: 8px 0;
+    }
+
+    .advanced-results .results-toolbar {
+      margin: 0 0 10px;
+      padding: 8px;
+      background: transparent;
+      border: 0;
+    }
+
+    .advanced-results .compare-box {
+      padding: 10px;
+    }
+
+    .gallery-grid {
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+      gap: 12px;
+    }
+
+    .gallery-card img {
+      content-visibility: auto;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 1140px) {
+      .studio-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .header {
+        align-items: flex-start;
+      }
+
+      .header,
+      .nav-tabs {
+        flex-wrap: wrap;
+      }
+
+      .nav-tabs {
+        width: 100%;
+      }
+
+      .tab-btn {
+        flex: 1;
+        padding: 6px 5px;
+        font-size: 0.7rem;
+      }
+
+      .hw-badge {
+        position: static;
+        margin-left: auto;
+      }
+
+      .container {
+        padding: 10px 12px 24px;
+      }
+
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .model-card {
+        max-width: 560px;
+        width: 100%;
+        margin: 0 auto;
+      }
+
+      .card-img-wrap {
+        max-height: 420px;
+      }
+
+      .metrics-row {
+        justify-content: flex-start;
+        gap: 14px;
+      }
+
+      .share-banner {
+        justify-content: flex-start;
+      }
+
+      .link-chip {
+        max-width: 90vw;
+      }
+
+      .split-viewer {
+        width: min(100%, 320px);
+        height: auto;
+        aspect-ratio: 1;
+      }
+
+      .split-viewer img {
+        width: 100%;
+        height: 100%;
+      }
+    }
   </style>
 </head>
 <body>
@@ -773,15 +1256,15 @@
     <div class="brand">
       <div class="brand-icon">✦</div>
       <div>
-        <h1>Inpainting AI Studio — So Sánh Cùng Lúc 3 Model Khôi Phục Ảnh</h1>
-        <p>Server GPU: Máy của bạn · Chạy song song Dilated U-Net vs DeepFillv1 vs LaMa FFC</p>
+        <h1>Image Inpainting</h1>
+        <p>So sánh 3 mô hình</p>
       </div>
     </div>
 
     <nav class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab('studio', this)">🎨 1. Demo & So Sánh 3 Model</button>
-      <button class="tab-btn" onclick="switchTab('benchmark', this)">📊 2. Bảng Điểm 3 Model Nhóm</button>
-      <button class="tab-btn" onclick="switchTab('gallery', this)">🖼️ 3. Biểu Đồ & Ảnh Báo Cáo</button>
+      <button class="tab-btn active" onclick="switchTab('studio', this)">Demo</button>
+      <button class="tab-btn" onclick="switchTab('benchmark', this)">Benchmark</button>
+      <button class="tab-btn" onclick="switchTab('gallery', this)">Gallery</button>
     </nav>
 
     <div class="hw-badge">
@@ -794,15 +1277,11 @@
 
     <!-- Public Link Banner -->
     <div class="share-banner">
-      <div style="font-size:0.86rem; font-weight:700; color:#e2e8f0;">
-        🌐 Link Public (Khác Wi-Fi / Qua Internet) — Gửi link này cho bạn của bạn mở trên laptop kia:
-      </div>
-      <div>
-        <span class="link-chip">
-          <span id="publicUrlText">Đang khởi tạo link Cloudflare Tunnel...</span>
-          <button class="copy-mini" onclick="copyLink('publicUrlText', this)">Copy Link</button>
-        </span>
-      </div>
+      <span class="share-label">Link chia sẻ</span>
+      <span class="link-chip">
+        <span id="publicUrlText">Đang kết nối...</span>
+        <button class="copy-mini" onclick="copyLink('publicUrlText', this)">Copy</button>
+      </span>
     </div>
 
     <!-- ================================================================= -->
@@ -810,122 +1289,92 @@
     <!-- ================================================================= -->
     <section id="tab-studio" class="tab-pane active">
 
-      <!-- Mode Selector Bar: Run All 3 Simultaneously (Default) or Single Model -->
-      <div class="model-bar">
-        <div style="font-weight:700; font-size:0.88rem; color:#93c5fd;">
-          🧠 Chế độ chạy trên GPU Server:
-        </div>
-        <div class="model-pills">
-          <button class="model-pill active" id="pill-all" onclick="setRunMode('all')">
-            ⚡ Chạy Cả 3 Model Cùng Lúc (Xem Khác Biệt)
-          </button>
-          <button class="model-pill" id="pill-dilated_unet" onclick="setRunMode('dilated_unet')">
-            1. Chỉ Dilated U-Net (Baseline)
-          </button>
-          <button class="model-pill" id="pill-deepfillv1" onclick="setRunMode('deepfillv1')">
-            2. Chỉ DeepFillv1 (Contextual Attention)
-          </button>
-          <button class="model-pill" id="pill-lama_ffc" onclick="setRunMode('lama_ffc')">
-            3. Chỉ LaMa FFC (Fast Fourier)
-          </button>
-        </div>
-      </div>
-
       <div class="studio-grid">
 
         <!-- Left Column: Canvas Drawing & Presets -->
         <aside class="panel">
           <div class="panel-title">
-            <span>1. Tô Vùng Muốn Xóa / Khôi Phục</span>
-            <span class="sub" id="holeRatioBadge">Lỗ khuyết: 0.0%</span>
+            <span>Ảnh đầu vào</span>
+            <span class="sub" id="holeRatioBadge">Mask: 0%</span>
+          </div>
+
+          <div class="upload-row">
+            <label class="btn" style="cursor:pointer;">
+              Tải ảnh
+              <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleUploadImage(event)" />
+            </label>
+            <details class="preset-picker" id="presetPicker" ontoggle="handlePresetToggle(this)">
+              <summary class="btn">Chọn ảnh mẫu</summary>
+              <div class="preset-grid" id="presetGrid"></div>
+            </details>
           </div>
 
           <div class="canvas-stage" id="canvasStage">
             <canvas id="imageCanvas" width="256" height="256"></canvas>
             <canvas id="maskCanvas" width="256" height="256"></canvas>
             <canvas id="cursorCanvas" width="256" height="256"></canvas>
+            <div class="canvas-empty" id="canvasEmpty">
+              <strong>Chọn ảnh để bắt đầu</strong>
+              <span>Tải ảnh lên hoặc mở thư viện mẫu</span>
+            </div>
           </div>
 
           <div class="tool-row">
-            <button class="btn active" id="toolBrush" onclick="setTool('brush')">🖌️ Cọ tô xóa</button>
-            <button class="btn" id="toolEraser" onclick="setTool('eraser')">🧽 Tẩy</button>
-            <button class="btn" id="toolRect" onclick="setTool('rect')">⬛ Khung vuông</button>
-            <button class="btn" onclick="undoMask()">↩️ Hoàn tác</button>
-            <button class="btn" onclick="clearMask()">🗑️ Xóa mask</button>
+            <button class="btn active" id="toolBrush" onclick="setTool('brush')">Cọ</button>
+            <button class="btn" id="toolEraser" onclick="setTool('eraser')">Tẩy</button>
+            <button class="btn" id="toolRect" onclick="setTool('rect')">Khung</button>
+            <button class="btn" onclick="undoMask()" title="Hoàn tác">Hoàn tác</button>
+            <button class="btn" onclick="clearMask()" title="Xóa mask">Xóa</button>
           </div>
 
           <div class="slider-group">
             <div class="slider-header">
-              <span>Kích thước nét cọ</span>
+              <span>Cỡ cọ</span>
               <strong><span id="brushSizeVal">22</span> px</strong>
             </div>
             <input type="range" id="brushSize" min="4" max="64" value="22" oninput="updateBrushSize(this.value)" />
           </div>
 
-          <span class="bucket-label">⚡ Tạo mặt nạ ngẫu nhiên theo 4 mức diện tích lỗ (chuẩn đề bài):</span>
-          <div class="bucket-grid">
-            <button class="btn" onclick="generateBucketMask('10-20')">10–20%</button>
-            <button class="btn" onclick="generateBucketMask('20-30')">20–30%</button>
-            <button class="btn" onclick="generateBucketMask('30-40')">30–40%</button>
-            <button class="btn" onclick="generateBucketMask('40-50')">40–50%</button>
-          </div>
-
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; font-size:0.79rem; color:var(--text-muted);">
-            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-              <input type="checkbox" id="autoRunToggle" checked style="accent-color:var(--accent-green);" />
-              Tự động chạy khi nhả chuột
-            </label>
-          </div>
-
-          <button class="btn btn-primary" id="runBtn" onclick="runInpaint()">
-            ⚡ Chạy So Sánh 3 Model Ngay
-          </button>
-
-          <div style="display:flex; gap:8px; margin-top:10px;">
-            <label class="btn" style="flex:1; cursor:pointer;">
-              📂 Tải ảnh từ laptop (.jpg/.png)
-              <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleUploadImage(event)" />
-            </label>
-            <button class="btn" onclick="restorePresetMask()" title="Áp dụng lại mặt nạ mẫu của ảnh này">
-              🎯 Mask mẫu
-            </button>
-          </div>
-
-          <div class="presets-section">
-            <div class="panel-title" style="margin-bottom:4px;">
-              <span>Thư Viện Ảnh Mẫu Có Sẵn</span>
-              <span class="sub">Click để chọn</span>
+          <details class="compact-details">
+            <summary>Mask ngẫu nhiên</summary>
+            <div class="bucket-grid">
+              <button class="btn" onclick="generateBucketMask('10-20')">10–20%</button>
+              <button class="btn" onclick="generateBucketMask('20-30')">20–30%</button>
+              <button class="btn" onclick="generateBucketMask('30-40')">30–40%</button>
+              <button class="btn" onclick="generateBucketMask('40-50')">40–50%</button>
             </div>
-            <div class="preset-grid" id="presetGrid"></div>
+            <button class="btn" id="restoreMaskBtn" onclick="restorePresetMask()" disabled>Khôi phục mask mẫu</button>
+          </details>
+
+          <div class="run-controls">
+            <button class="btn btn-primary" id="runBtn" onclick="runInpaint()" disabled>Chạy 3 model</button>
+            <span id="runStatus" role="status" aria-live="polite">Chọn ảnh để bắt đầu.</span>
+            <details class="compact-details run-mode-details">
+              <summary id="runModeSummary">Chế độ: cả 3 model</summary>
+              <div class="model-pills">
+                <button class="model-pill active" id="pill-all" onclick="setRunMode('all')">Cả 3 model</button>
+                <button class="model-pill" id="pill-dilated_unet" onclick="setRunMode('dilated_unet')">Dilated U-Net</button>
+                <button class="model-pill" id="pill-deepfillv1" onclick="setRunMode('deepfillv1')">DeepFillv1</button>
+                <button class="model-pill" id="pill-lama_ffc" onclick="setRunMode('lama_ffc')">LaMa FFC</button>
+              </div>
+            </details>
           </div>
         </aside>
 
         <!-- Right Column: 3 Models Side-by-Side Output + Split Slider -->
         <div>
-
-          <div class="results-toolbar">
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">
-              <button class="btn active" id="view-composite" onclick="setViewMode('composite')">
-                🖼️ Ảnh Phục Hồi (Composite)
-              </button>
-              <button class="btn" id="view-raw" onclick="setViewMode('raw')">
-                🧠 Ảnh Mạng Sinh Thô (Raw Output)
-              </button>
-              <button class="btn" id="view-heatmap" onclick="setViewMode('heatmap')">
-                🔥 Bản Đồ Nhiệt Sai Số L1 (|Pred − GT|)
-              </button>
-            </div>
-
-            <button class="btn btn-success" onclick="downloadStrip()">
-              📥 Tải Ảnh So Sánh Ngang (.PNG)
-            </button>
+          <div class="results-heading">
+            <span>Kết quả</span>
+            <span id="holePixelsPill"></span>
           </div>
 
-          <!-- 4 Cards Side-by-Side: Masked Input + 3 Models -->
-          <div class="cards-grid">
+          <div class="results-empty" id="resultsEmptyState">Ba kết quả sẽ hiện ở đây sau khi bạn bấm Chạy.</div>
+
+          <!-- Three model results; the masked input remains available in details. -->
+          <div class="cards-grid" id="resultCards" hidden>
 
             <!-- Card 0: Masked Input -->
-            <div class="model-card">
+            <div class="model-card input-preview-card">
               <div class="card-head">
                 <div>
                   <div class="card-title">0. Ảnh Đục Lỗ Khuyết</div>
@@ -934,8 +1383,8 @@
                 <span class="badge" style="background:rgba(148,163,184,0.18); color:#cbd5e1;">Input</span>
               </div>
               <div class="card-img-wrap">
-                <img id="cardImg-masked" src="" alt="Masked Input" />
-                <div class="latency-pill" id="holePixelsPill">0 px bị che</div>
+                <img id="cardImg-masked" alt="Masked Input" />
+                <div class="latency-pill" id="maskedLatencyPill">0 px bị che</div>
               </div>
               <div class="metrics-row">
                 <div class="metric-box">
@@ -957,13 +1406,13 @@
             <div class="model-card" id="card-dilated_unet">
               <div class="card-head">
                 <div>
-                  <div class="card-title" style="color:#60a5fa;">1. Dilated U-Net + PatchGAN</div>
+                  <div class="card-title" style="color:#60a5fa;">Dilated U-Net</div>
                   <div class="card-sub">Baseline · Dilated Conv (2,4,8,16) + U-Net Skip</div>
                 </div>
                 <span class="badge" style="background:rgba(59,130,246,0.2); color:#60a5fa;">Epoch 22</span>
               </div>
               <div class="card-img-wrap">
-                <img id="cardImg-dilated_unet" src="" alt="Dilated U-Net" />
+                <img id="cardImg-dilated_unet" alt="Dilated U-Net" />
                 <div class="winner-ribbon" id="win-dilated_unet" style="display:none;">🏆 Best</div>
                 <div class="latency-pill" id="lat-dilated_unet">-- ms</div>
               </div>
@@ -987,13 +1436,13 @@
             <div class="model-card" id="card-deepfillv1">
               <div class="card-head">
                 <div>
-                  <div class="card-title" style="color:#34d399;">2. DeepFillv1 + Contextual Attn</div>
+                  <div class="card-title" style="color:#34d399;">DeepFillv1</div>
                   <div class="card-sub">Coarse-to-Fine · Mượn trực tiếp Patch 3×3 toàn ảnh</div>
                 </div>
                 <span class="badge" style="background:rgba(16,185,129,0.2); color:#34d399;">Epoch 16</span>
               </div>
               <div class="card-img-wrap">
-                <img id="cardImg-deepfillv1" src="" alt="DeepFillv1" />
+                <img id="cardImg-deepfillv1" alt="DeepFillv1" />
                 <div class="winner-ribbon" id="win-deepfillv1" style="display:none;">🏆 Best</div>
                 <div class="latency-pill" id="lat-deepfillv1">-- ms</div>
               </div>
@@ -1017,13 +1466,13 @@
             <div class="model-card" id="card-lama_ffc">
               <div class="card-head">
                 <div>
-                  <div class="card-title" style="color:#c084fc;">3. LaMa rút gọn (Fast Fourier FFC)</div>
+                  <div class="card-title" style="color:#c084fc;">LaMa FFC</div>
                   <div class="card-sub">9× FFC-ResBlock (25% Local + 75% Global 2D FFT)</div>
                 </div>
                 <span class="badge" id="badge-lama_ffc" style="background:rgba(168,85,247,0.2); color:#c084fc;">Epoch 22</span>
               </div>
               <div class="card-img-wrap">
-                <img id="cardImg-lama_ffc" src="" alt="LaMa FFC" />
+                <img id="cardImg-lama_ffc" alt="LaMa FFC" />
                 <div class="winner-ribbon" id="win-lama_ffc" style="display:none;">🏆 Best</div>
                 <div class="latency-pill" id="lat-lama_ffc">-- ms</div>
               </div>
@@ -1044,6 +1493,17 @@
             </div>
 
           </div>
+
+          <details class="advanced-results">
+            <summary>Chi tiết so sánh · raw, heatmap và thanh kéo</summary>
+            <div class="results-toolbar">
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button class="btn active" id="view-composite" onclick="setViewMode('composite')">Ảnh ghép</button>
+                <button class="btn" id="view-raw" onclick="setViewMode('raw')">Raw output</button>
+                <button class="btn" id="view-heatmap" onclick="setViewMode('heatmap')">Heatmap</button>
+              </div>
+              <button class="btn btn-success" onclick="downloadStrip()">Tải ảnh so sánh</button>
+            </div>
 
           <!-- Interactive Split-Screen Slider -->
           <div class="compare-box">
@@ -1071,9 +1531,9 @@
 
             <div class="split-layout">
               <div class="split-viewer" id="splitViewer">
-                <img id="splitRightImg" src="" alt="Right Model" />
+                <img id="splitRightImg" alt="Right Model" />
                 <div class="split-overlay" id="splitOverlay">
-                  <img id="splitLeftImg" src="" alt="Left Model" />
+                  <img id="splitLeftImg" alt="Left Model" />
                 </div>
                 <div class="split-handle" id="splitHandle">⇄</div>
               </div>
@@ -1097,6 +1557,7 @@
               </div>
             </div>
           </div>
+          </details>
 
         </div>
       </div>
@@ -1175,21 +1636,21 @@
       <div class="gallery-grid">
         <div class="gallery-card">
           <h4>1. So sánh trực tiếp Dilated U-Net vs DeepFillv1 trên 4 cảnh cây thực tế</h4>
-          <img src="/static/report_figs/so_sanh_2_kien_truc_canh_cay.png" alt="So sánh 2 kiến trúc" onclick="openLightbox(this.src)" />
+          <img data-src="/static/report_figs/so_sanh_2_kien_truc_canh_cay.png" alt="So sánh 2 kiến trúc" onclick="openLightbox(this.src)" />
         </div>
         <div class="gallery-card">
           <h4>2. Kết quả khôi phục trên tập Validation (4 mức độ che khuất — LaMa FFC)</h4>
-          <img src="/static/report_figs/lama_fig4.png" alt="LaMa Val Samples" onclick="openLightbox(this.src)" />
+          <img data-src="/static/report_figs/lama_fig4.png" alt="LaMa Val Samples" onclick="openLightbox(this.src)" />
         </div>
         <div class="gallery-card">
           <h4>3. Kết quả khôi phục trên tập Validation (Dilated U-Net Baseline)</h4>
-          <img src="/static/report_figs/unet_val_samples.png" alt="U-Net Val Samples" onclick="openLightbox(this.src)" />
+          <img data-src="/static/report_figs/unet_val_samples.png" alt="U-Net Val Samples" onclick="openLightbox(this.src)" />
         </div>
         <div class="gallery-card">
           <h4>4. Biểu đồ Metric Test theo 4 Bucket lỗ khuyết (Dilated U-Net vs LaMa FFC)</h4>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <img src="/static/report_figs/unet_fig1_buckets.png" alt="U-Net Buckets" onclick="openLightbox(this.src)" />
-            <img src="/static/report_figs/lama_fig1.png" alt="LaMa Buckets" onclick="openLightbox(this.src)" />
+            <img data-src="/static/report_figs/unet_fig1_buckets.png" alt="U-Net Buckets" onclick="openLightbox(this.src)" />
+            <img data-src="/static/report_figs/lama_fig1.png" alt="LaMa Buckets" onclick="openLightbox(this.src)" />
           </div>
         </div>
       </div>
@@ -1198,7 +1659,7 @@
   </main>
 
   <div class="lightbox" id="lightbox" onclick="this.classList.remove('open')">
-    <img id="lightboxImg" src="" alt="Zoomed Figure" />
+    <img id="lightboxImg" alt="Zoomed Figure" />
   </div>
 
   <script>
@@ -1223,7 +1684,12 @@
     let rectStartPt = null;
     let undoStack = [];
     let presetsData = [];
-    let activePresetIdx = 0;
+    let activePresetIdx = -1;
+    let presetsLoaded = false;
+    let presetsLoading = false;
+    let galleryLoaded = false;
+    let hasImage = false;
+    let hasMask = false;
 
     let currentViewMode = 'composite';
     let latestResponse = null;
@@ -1234,7 +1700,7 @@
       setupCanvasEvents();
       setupSplitSlider();
       await loadServerInfo();
-      await loadPresets();
+      updateRunButton();
     });
 
     function switchTab(tabId, btn) {
@@ -1242,9 +1708,20 @@
       document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
       document.getElementById('tab-' + tabId).classList.add('active');
       btn.classList.add('active');
+      if (tabId === 'gallery') loadGalleryImages();
+    }
+
+    function loadGalleryImages() {
+      if (galleryLoaded) return;
+      document.querySelectorAll('#tab-gallery img[data-src]').forEach(img => {
+        img.src = img.dataset.src;
+        img.removeAttribute('data-src');
+      });
+      galleryLoaded = true;
     }
 
     function openLightbox(src) {
+      if (!src) return;
       document.getElementById('lightboxImg').src = src;
       document.getElementById('lightbox').classList.add('open');
     }
@@ -1276,6 +1753,7 @@
     }
 
     function setRunMode(mode) {
+      if (isRunningInference || !['all', ...ALL_3].includes(mode)) return;
       runMode = mode;
       ['all', 'dilated_unet', 'deepfillv1', 'lama_ffc'].forEach(k => {
         const btn = document.getElementById('pill-' + k);
@@ -1286,53 +1764,114 @@
         const card = document.getElementById('card-' + id);
         if (card) card.style.display = activeList.includes(id) ? 'flex' : 'none';
       });
-      runInpaint();
+      const names = {
+        all: 'cả 3 model',
+        dilated_unet: 'Dilated U-Net',
+        deepfillv1: 'DeepFillv1',
+        lama_ffc: 'LaMa FFC',
+      };
+      document.getElementById('runModeSummary').textContent = `Chế độ: ${names[mode]}`;
+      invalidateResults(hasImage
+        ? 'Chế độ đã đổi. Bấm Chạy để cập nhật kết quả.'
+        : 'Chọn ảnh để bắt đầu.');
+      updateRunButton();
     }
 
     // -----------------------------------------------------------------------
     // Presets & Canvas
     // -----------------------------------------------------------------------
+    function handlePresetToggle(details) {
+      if (details.open) loadPresets();
+    }
+
     async function loadPresets() {
-      const res = await fetch('/api/presets');
-      const data = await res.json();
-      presetsData = data.presets || [];
+      if (presetsLoaded || presetsLoading) return;
       const grid = document.getElementById('presetGrid');
-      grid.innerHTML = '';
-
-      presetsData.forEach((p, idx) => {
-        const div = document.createElement('div');
-        div.className = 'preset-item' + (idx === 0 ? ' active' : '');
-        div.title = `${p.title} — ${p.description}`;
-        div.innerHTML = `
-          <img src="${p.image_url}" alt="${p.title}" />
-          <div class="preset-caption">${p.title}</div>
-        `;
-        div.onclick = () => selectPreset(idx);
-        grid.appendChild(div);
-      });
-
-      if (presetsData.length > 0) {
-        await selectPreset(0);
+      presetsLoading = true;
+      grid.textContent = 'Đang tải ảnh mẫu…';
+      try {
+        const res = await fetch('/api/presets');
+        if (!res.ok) throw new Error('Không tải được danh sách ảnh mẫu.');
+        const data = await res.json();
+        presetsData = data.presets || [];
+        grid.innerHTML = '';
+        presetsData.forEach((p, idx) => {
+          const div = document.createElement('div');
+          div.className = 'preset-item';
+          div.title = `${p.title} — ${p.description}`;
+          div.innerHTML = `
+            <img src="${p.image_url}" alt="${p.title}" loading="lazy" />
+            <div class="preset-caption">${p.title}</div>
+          `;
+          div.onclick = () => selectPreset(idx);
+          grid.appendChild(div);
+        });
+        if (presetsData.length === 0) grid.textContent = 'Chưa có ảnh mẫu.';
+        presetsLoaded = true;
+      } catch (err) {
+        grid.textContent = 'Không tải được ảnh mẫu. Thử mở lại mục này.';
+        console.error(err);
+      } finally {
+        presetsLoading = false;
       }
     }
 
     async function selectPreset(idx) {
+      const p = presetsData[idx];
+      if (!p) return;
       activePresetIdx = idx;
+      undoStack = [];
       document.querySelectorAll('.preset-item').forEach((el, i) => {
         el.classList.toggle('active', i === idx);
       });
-      const p = presetsData[idx];
       await loadImageToCanvas(p.image_url);
       await loadMaskToCanvas(p.mask_url);
-      await runInpaint();
+      markImageReady();
+      invalidateResults('Ảnh mẫu đã chọn. Bấm Chạy để xem kết quả.');
+      document.getElementById('presetPicker').open = false;
     }
 
     async function restorePresetMask() {
-      if (presetsData[activePresetIdx]) {
+      if (activePresetIdx >= 0 && presetsData[activePresetIdx]) {
         saveUndoState();
         await loadMaskToCanvas(presetsData[activePresetIdx].mask_url);
-        await runInpaint();
+        invalidateResults('Mask mẫu đã khôi phục. Bấm Chạy để cập nhật.');
+        updateRunButton();
       }
+    }
+
+    function setRunStatus(message) {
+      document.getElementById('runStatus').textContent = message;
+    }
+
+    function invalidateResults(message) {
+      latestResponse = null;
+      document.getElementById('resultCards').hidden = true;
+      const emptyState = document.getElementById('resultsEmptyState');
+      emptyState.textContent = message;
+      emptyState.hidden = false;
+      setRunStatus(message);
+    }
+
+    function updateRunButton() {
+      const button = document.getElementById('runBtn');
+      const labels = {
+        all: 'Chạy 3 model',
+        dilated_unet: 'Chạy Dilated U-Net',
+        deepfillv1: 'Chạy DeepFillv1',
+        lama_ffc: 'Chạy LaMa FFC',
+      };
+      button.textContent = isRunningInference
+        ? `Đang chạy ${runMode === 'all' ? 3 : 1} model…`
+        : labels[runMode];
+      button.disabled = !hasImage || !hasMask || isRunningInference;
+    }
+
+    function markImageReady() {
+      hasImage = true;
+      document.getElementById('canvasStage').classList.add('has-image');
+      document.getElementById('restoreMaskBtn').disabled = activePresetIdx < 0;
+      updateRunButton();
     }
 
     function initBinaryMask() {
@@ -1347,18 +1886,21 @@
     }
 
     function undoMask() {
+      if (!hasImage) return;
       if (undoStack.length === 0) return;
       const prev = undoStack.pop();
       binMaskCtx.putImageData(prev, 0, 0);
       renderVisibleMask();
-      if (document.getElementById('autoRunToggle').checked) runInpaint();
+      invalidateResults('Mask đã thay đổi. Bấm Chạy để cập nhật.');
     }
 
     function clearMask() {
+      if (!hasImage) return;
       saveUndoState();
       binMaskCtx.fillStyle = '#000000';
       binMaskCtx.fillRect(0, 0, 256, 256);
       renderVisibleMask();
+      invalidateResults('Mask đã xóa. Tô vùng cần xóa rồi bấm Chạy.');
     }
 
     function loadImageToCanvas(dataUrl) {
@@ -1407,7 +1949,9 @@
       }
       maskCtx.putImageData(dst, 0, 0);
       const pct = ((holeCount / (256 * 256)) * 100).toFixed(1);
-      document.getElementById('holeRatioBadge').textContent = `Lỗ khuyết: ${pct}%`;
+      hasMask = holeCount > 0;
+      document.getElementById('holeRatioBadge').textContent = `Mask: ${pct}%`;
+      updateRunButton();
     }
 
     function getCanvasCoords(e) {
@@ -1465,6 +2009,7 @@
       const stage = document.getElementById('canvasStage');
 
       stage.addEventListener('mousedown', (e) => {
+        if (!hasImage) return;
         saveUndoState();
         isDrawing = true;
         const pt = getCanvasCoords(e);
@@ -1477,6 +2022,7 @@
       });
 
       window.addEventListener('mousemove', (e) => {
+        if (!hasImage) return;
         const rect = stage.getBoundingClientRect();
         const inside =
           e.clientX >= rect.left &&
@@ -1519,9 +2065,7 @@
           renderVisibleMask();
         }
         lastPt = null;
-        if (document.getElementById('autoRunToggle').checked) {
-          runInpaint();
-        }
+        invalidateResults('Mask đã thay đổi. Bấm Chạy để cập nhật.');
       });
     }
 
@@ -1538,45 +2082,67 @@
     }
 
     async function generateBucketMask(bucket) {
+      if (!hasImage) {
+        setRunStatus('Tải ảnh trước khi tạo mask.');
+        return;
+      }
       saveUndoState();
-      const res = await fetch('/api/generate_mask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bucket }),
-      });
-      const data = await res.json();
-      await loadMaskToCanvas(data.mask_url);
-      await runInpaint();
+      try {
+        const res = await fetch('/api/generate_mask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bucket }),
+        });
+        if (!res.ok) throw new Error('Không tạo được mask.');
+        const data = await res.json();
+        await loadMaskToCanvas(data.mask_url);
+        invalidateResults('Mask đã tạo. Bấm Chạy để xem kết quả.');
+      } catch (err) {
+        setRunStatus(err.message || 'Không tạo được mask.');
+      }
     }
 
     function handleUploadImage(event) {
       const file = event.target.files[0];
       if (!file) return;
+      hasImage = false;
+      document.getElementById('canvasStage').classList.remove('has-image');
+      activePresetIdx = -1;
+      undoStack = [];
+      initBinaryMask();
+      document.getElementById('restoreMaskBtn').disabled = true;
+      document.querySelectorAll('.preset-item').forEach(el => el.classList.remove('active'));
+      setRunStatus('Đang đọc ảnh…');
+      invalidateResults('Đang đọc ảnh…');
       const reader = new FileReader();
-      reader.onload = async (e) => {
+      reader.onload = (e) => {
         const im = new Image();
-        im.onload = async () => {
+        im.onload = () => {
           const s = Math.min(im.width, im.height);
           const sx = (im.width - s) / 2;
           const sy = (im.height - s) / 2;
           imgCtx.clearRect(0, 0, 256, 256);
           imgCtx.drawImage(im, sx, sy, s, s, 0, 0, 256, 256);
-          await runInpaint();
+          markImageReady();
+          invalidateResults('Ảnh đã sẵn sàng. Tô vùng cần xóa rồi bấm Chạy.');
         };
+        im.onerror = () => setRunStatus('Không đọc được ảnh này. Hãy chọn JPG hoặc PNG.');
         im.src = e.target.result;
       };
+      reader.onerror = () => setRunStatus('Không đọc được tệp ảnh. Thử chọn lại.');
       reader.readAsDataURL(file);
+      event.target.value = '';
     }
 
     // -----------------------------------------------------------------------
     // Run All 3 Models Simultaneously
     // -----------------------------------------------------------------------
     async function runInpaint() {
-      if (isRunningInference) return;
+      if (isRunningInference || !hasImage || !hasMask) return;
       isRunningInference = true;
-      const runBtn = document.getElementById('runBtn');
       const selected_models = runMode === 'all' ? ALL_3 : [runMode];
-      runBtn.textContent = `⏳ Đang chạy ${selected_models.length} model trên GPU Server...`;
+      updateRunButton();
+      setRunStatus(`Đang chạy ${selected_models.length} model…`);
 
       try {
         const image_b64 = imgCanvas.toDataURL('image/png');
@@ -1588,14 +2154,18 @@
           body: JSON.stringify({ image_b64, mask_b64, selected_models }),
         });
 
-        if (!res.ok) throw new Error('Inference API failed');
+        if (!res.ok) throw new Error('Không chạy được mô hình. Thử lại sau.');
         latestResponse = await res.json();
+        document.getElementById('resultsEmptyState').hidden = true;
+        document.getElementById('resultCards').hidden = false;
         renderResults();
+        setRunStatus(`Hoàn tất · ${latestResponse.models?.length || 0} model`);
       } catch (err) {
         console.error(err);
+        setRunStatus(err.message || 'Có lỗi khi chạy mô hình.');
       } finally {
         isRunningInference = false;
-        runBtn.textContent = '⚡ Chạy So Sánh 3 Model Ngay';
+        updateRunButton();
       }
     }
 
@@ -1614,7 +2184,7 @@
       document.getElementById('cardImg-masked').src = data.masked_url;
       document.getElementById('holePixelsPill').textContent = `${data.hole_pixels.toLocaleString()} px bị che`;
       document.getElementById('m-hole-pct').textContent = `${data.hole_ratio_pct}%`;
-      document.getElementById('holeRatioBadge').textContent = `Lỗ khuyết: ${data.hole_ratio_pct}%`;
+      document.getElementById('holeRatioBadge').textContent = `Mask: ${data.hole_ratio_pct}%`;
 
       const models = data.models || [];
       let bestPsnr = -Infinity;
