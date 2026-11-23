@@ -1,0 +1,1733 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inpainting AI Studio — So Sánh Cùng Lúc 3 Model Khôi Phục Ảnh</title>
+  <style>
+    :root {
+      --bg-main: #0b0f19;
+      --bg-panel: #131a2a;
+      --bg-card: #1a2337;
+      --bg-hover: #232f49;
+      --border: #2a3754;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-purple: #a855f7;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at top right, #17223b 0%, var(--bg-main) 55%);
+      color: var(--text-main);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    .header {
+      background: rgba(19, 26, 42, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 13px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-green));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35);
+    }
+
+    .brand h1 {
+      font-size: 1.12rem;
+      font-weight: 700;
+    }
+
+    .brand p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      background: var(--bg-main);
+      padding: 5px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      padding: 8px 15px;
+      border-radius: 7px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tab-btn.active {
+      background: var(--accent-blue);
+      color: #fff;
+    }
+
+    .hw-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+      padding: 6px 13px;
+      border-radius: 999px;
+      font-size: 0.79rem;
+      font-weight: 600;
+    }
+
+    .hw-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .container {
+      max-width: 1540px;
+      margin: 0 auto;
+      padding: 16px 24px 48px;
+    }
+
+    /* Public Link Banner */
+    .share-banner {
+      background: linear-gradient(90deg, rgba(30, 58, 138, 0.45), rgba(16, 185, 129, 0.16));
+      border: 1px solid rgba(59, 130, 246, 0.45);
+      border-radius: 12px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .link-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(11, 15, 25, 0.85);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-family: Consolas, monospace;
+      font-size: 0.88rem;
+      color: #34d399;
+      font-weight: 700;
+    }
+
+    .copy-mini {
+      background: var(--accent-blue);
+      color: #fff;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-family: 'Segoe UI', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    /* Mode Selector Bar */
+    .model-bar {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .model-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .model-pill {
+      background: var(--bg-card);
+      color: var(--text-muted);
+      border: 1.5px solid var(--border);
+      padding: 7px 13px;
+      border-radius: 9px;
+      font-size: 0.81rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.16s;
+    }
+
+    .model-pill:hover {
+      color: var(--text-main);
+      border-color: #475569;
+    }
+
+    .model-pill.active {
+      background: rgba(59, 130, 246, 0.22);
+      border-color: #3b82f6;
+      color: #60a5fa;
+    }
+
+    /* Studio Grid */
+    .studio-grid {
+      display: grid;
+      grid-template-columns: 375px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 1140px) {
+      .studio-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .panel-title {
+      font-size: 0.94rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .panel-title span.sub {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Interactive Canvas Wrapper */
+    .canvas-stage {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin: 0 auto 12px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid var(--accent-blue);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+      background: #000;
+      cursor: crosshair;
+      user-select: none;
+    }
+
+    .canvas-stage canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 320px;
+      height: 320px;
+    }
+
+    #maskCanvas {
+      opacity: 0.68;
+    }
+
+    #cursorCanvas {
+      pointer-events: none;
+    }
+
+    .tool-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 7px 11px;
+      border-radius: 8px;
+      font-size: 0.79rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .btn:hover {
+      background: var(--bg-hover);
+      border-color: #3f5179;
+    }
+
+    .btn.active {
+      background: rgba(59, 130, 246, 0.22);
+      border-color: var(--accent-blue);
+      color: #60a5fa;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border-color: #3b82f6;
+      color: #fff;
+      width: 100%;
+      padding: 11px 14px;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-success {
+      background: rgba(16, 185, 129, 0.16);
+      border-color: rgba(16, 185, 129, 0.45);
+      color: #34d399;
+    }
+
+    .slider-group {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      margin-bottom: 4px;
+      color: var(--text-muted);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent-blue);
+      cursor: pointer;
+    }
+
+    .bucket-label {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    .bucket-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .presets-section {
+      margin-top: 12px;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 7px;
+      margin-top: 6px;
+    }
+
+    .preset-item {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      cursor: pointer;
+      background: var(--bg-card);
+      transition: all 0.16s;
+    }
+
+    .preset-item:hover {
+      transform: translateY(-2px);
+      border-color: #60a5fa;
+    }
+
+    .preset-item.active {
+      border-color: var(--accent-green);
+    }
+
+    .preset-item img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      display: block;
+    }
+
+    .preset-caption {
+      font-size: 0.66rem;
+      padding: 3px 4px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--text-muted);
+      background: rgba(11, 15, 25, 0.88);
+    }
+
+    /* 4-Card Output Grid (Masked Input + 3 Models Side-by-Side) */
+    .results-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      padding: 11px 15px;
+      border-radius: 12px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .model-card {
+      background: var(--bg-panel);
+      border: 1.5px solid var(--border);
+      border-radius: 13px;
+      padding: 13px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.2s;
+    }
+
+    .model-card.winner {
+      border-color: rgba(16, 185, 129, 0.7);
+      box-shadow: 0 8px 26px rgba(16, 185, 129, 0.14);
+    }
+
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      min-height: 44px;
+    }
+
+    .card-title {
+      font-size: 0.89rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .card-sub {
+      font-size: 0.71rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .badge {
+      font-size: 0.67rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .card-img-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 9px;
+      overflow: hidden;
+      background: #000;
+      border: 1px solid var(--border);
+      margin-bottom: 10px;
+    }
+
+    .card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .winner-ribbon {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(16, 185, 129, 0.92);
+      color: #042f2e;
+      font-size: 0.69rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    .latency-pill {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(11, 15, 25, 0.84);
+      color: #cbd5e1;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      background: var(--bg-card);
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .metric-box .m-label {
+      font-size: 0.66rem;
+      color: var(--text-muted);
+      display: block;
+    }
+
+    .metric-box .m-val {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .metric-box.best .m-val {
+      color: #34d399;
+    }
+
+    /* Interactive Split Slider Section */
+    .compare-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .compare-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .select-input {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .split-layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    @media (max-width: 900px) {
+      .split-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .split-viewer {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin: 0 auto;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      user-select: none;
+      background: #000;
+    }
+
+    .split-viewer img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 320px;
+      height: 320px;
+      object-fit: cover;
+      pointer-events: none;
+    }
+
+    .split-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 50%;
+      overflow: hidden;
+      border-right: 2px solid #fff;
+    }
+
+    .split-handle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #fff;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 13px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+    }
+
+    .insight-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 14px;
+    }
+
+    .insight-card h4 {
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+      color: #60a5fa;
+    }
+
+    .insight-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      font-size: 0.81rem;
+      color: #cbd5e1;
+    }
+
+    .bench-table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+    }
+
+    table.bench-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    table.bench-table th,
+    table.bench-table td {
+      padding: 11px 13px;
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+    }
+
+    table.bench-table th {
+      background: var(--bg-card);
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.74rem;
+    }
+
+    table.bench-table td:first-child,
+    table.bench-table th:first-child {
+      text-align: left;
+    }
+
+    .best-cell {
+      color: #34d399;
+      font-weight: 800;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+      gap: 18px;
+    }
+
+    .gallery-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .gallery-card h4 {
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    .gallery-card img {
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+      cursor: zoom-in;
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 15, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 24px;
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox img {
+      max-width: 95vw;
+      max-height: 92vh;
+      border-radius: 10px;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="brand">
+      <div class="brand-icon">✦</div>
+      <div>
+        <h1>Inpainting AI Studio — So Sánh Cùng Lúc 3 Model Khôi Phục Ảnh</h1>
+        <p>Server GPU: Máy của bạn · Chạy song song Dilated U-Net vs DeepFillv1 vs LaMa FFC</p>
+      </div>
+    </div>
+
+    <nav class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('studio', this)">🎨 1. Demo & So Sánh 3 Model</button>
+      <button class="tab-btn" onclick="switchTab('benchmark', this)">📊 2. Bảng Điểm 3 Model Nhóm</button>
+      <button class="tab-btn" onclick="switchTab('gallery', this)">🖼️ 3. Biểu Đồ & Ảnh Báo Cáo</button>
+    </nav>
+
+    <div class="hw-badge">
+      <span class="hw-dot"></span>
+      <span id="hwText">Đang kết nối GPU Server...</span>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- Public Link Banner -->
+    <div class="share-banner">
+      <div style="font-size:0.86rem; font-weight:700; color:#e2e8f0;">
+        🌐 Link Public (Khác Wi-Fi / Qua Internet) — Gửi link này cho bạn của bạn mở trên laptop kia:
+      </div>
+      <div>
+        <span class="link-chip">
+          <span id="publicUrlText">Đang khởi tạo link Cloudflare Tunnel...</span>
+          <button class="copy-mini" onclick="copyLink('publicUrlText', this)">Copy Link</button>
+        </span>
+      </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- TAB 1: 3-MODEL SIMULTANEOUS COMPARISON STUDIO                     -->
+    <!-- ================================================================= -->
+    <section id="tab-studio" class="tab-pane active">
+
+      <!-- Mode Selector Bar: Run All 3 Simultaneously (Default) or Single Model -->
+      <div class="model-bar">
+        <div style="font-weight:700; font-size:0.88rem; color:#93c5fd;">
+          🧠 Chế độ chạy trên GPU Server:
+        </div>
+        <div class="model-pills">
+          <button class="model-pill active" id="pill-all" onclick="setRunMode('all')">
+            ⚡ Chạy Cả 3 Model Cùng Lúc (Xem Khác Biệt)
+          </button>
+          <button class="model-pill" id="pill-dilated_unet" onclick="setRunMode('dilated_unet')">
+            1. Chỉ Dilated U-Net (Baseline)
+          </button>
+          <button class="model-pill" id="pill-deepfillv1" onclick="setRunMode('deepfillv1')">
+            2. Chỉ DeepFillv1 (Contextual Attention)
+          </button>
+          <button class="model-pill" id="pill-lama_ffc" onclick="setRunMode('lama_ffc')">
+            3. Chỉ LaMa FFC (Fast Fourier)
+          </button>
+        </div>
+      </div>
+
+      <div class="studio-grid">
+
+        <!-- Left Column: Canvas Drawing & Presets -->
+        <aside class="panel">
+          <div class="panel-title">
+            <span>1. Tô Vùng Muốn Xóa / Khôi Phục</span>
+            <span class="sub" id="holeRatioBadge">Lỗ khuyết: 0.0%</span>
+          </div>
+
+          <div class="canvas-stage" id="canvasStage">
+            <canvas id="imageCanvas" width="256" height="256"></canvas>
+            <canvas id="maskCanvas" width="256" height="256"></canvas>
+            <canvas id="cursorCanvas" width="256" height="256"></canvas>
+          </div>
+
+          <div class="tool-row">
+            <button class="btn active" id="toolBrush" onclick="setTool('brush')">🖌️ Cọ tô xóa</button>
+            <button class="btn" id="toolEraser" onclick="setTool('eraser')">🧽 Tẩy</button>
+            <button class="btn" id="toolRect" onclick="setTool('rect')">⬛ Khung vuông</button>
+            <button class="btn" onclick="undoMask()">↩️ Hoàn tác</button>
+            <button class="btn" onclick="clearMask()">🗑️ Xóa mask</button>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Kích thước nét cọ</span>
+              <strong><span id="brushSizeVal">22</span> px</strong>
+            </div>
+            <input type="range" id="brushSize" min="4" max="64" value="22" oninput="updateBrushSize(this.value)" />
+          </div>
+
+          <span class="bucket-label">⚡ Tạo mặt nạ ngẫu nhiên theo 4 mức diện tích lỗ (chuẩn đề bài):</span>
+          <div class="bucket-grid">
+            <button class="btn" onclick="generateBucketMask('10-20')">10–20%</button>
+            <button class="btn" onclick="generateBucketMask('20-30')">20–30%</button>
+            <button class="btn" onclick="generateBucketMask('30-40')">30–40%</button>
+            <button class="btn" onclick="generateBucketMask('40-50')">40–50%</button>
+          </div>
+
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; font-size:0.79rem; color:var(--text-muted);">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="autoRunToggle" checked style="accent-color:var(--accent-green);" />
+              Tự động chạy khi nhả chuột
+            </label>
+          </div>
+
+          <button class="btn btn-primary" id="runBtn" onclick="runInpaint()">
+            ⚡ Chạy So Sánh 3 Model Ngay
+          </button>
+
+          <div style="display:flex; gap:8px; margin-top:10px;">
+            <label class="btn" style="flex:1; cursor:pointer;">
+              📂 Tải ảnh từ laptop (.jpg/.png)
+              <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleUploadImage(event)" />
+            </label>
+            <button class="btn" onclick="restorePresetMask()" title="Áp dụng lại mặt nạ mẫu của ảnh này">
+              🎯 Mask mẫu
+            </button>
+          </div>
+
+          <div class="presets-section">
+            <div class="panel-title" style="margin-bottom:4px;">
+              <span>Thư Viện Ảnh Mẫu Có Sẵn</span>
+              <span class="sub">Click để chọn</span>
+            </div>
+            <div class="preset-grid" id="presetGrid"></div>
+          </div>
+        </aside>
+
+        <!-- Right Column: 3 Models Side-by-Side Output + Split Slider -->
+        <div>
+
+          <div class="results-toolbar">
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button class="btn active" id="view-composite" onclick="setViewMode('composite')">
+                🖼️ Ảnh Phục Hồi (Composite)
+              </button>
+              <button class="btn" id="view-raw" onclick="setViewMode('raw')">
+                🧠 Ảnh Mạng Sinh Thô (Raw Output)
+              </button>
+              <button class="btn" id="view-heatmap" onclick="setViewMode('heatmap')">
+                🔥 Bản Đồ Nhiệt Sai Số L1 (|Pred − GT|)
+              </button>
+            </div>
+
+            <button class="btn btn-success" onclick="downloadStrip()">
+              📥 Tải Ảnh So Sánh Ngang (.PNG)
+            </button>
+          </div>
+
+          <!-- 4 Cards Side-by-Side: Masked Input + 3 Models -->
+          <div class="cards-grid">
+
+            <!-- Card 0: Masked Input -->
+            <div class="model-card">
+              <div class="card-head">
+                <div>
+                  <div class="card-title">0. Ảnh Đục Lỗ Khuyết</div>
+                  <div class="card-sub">Đầu vào 4 kênh: RGB Masked + Binary Mask</div>
+                </div>
+                <span class="badge" style="background:rgba(148,163,184,0.18); color:#cbd5e1;">Input</span>
+              </div>
+              <div class="card-img-wrap">
+                <img id="cardImg-masked" src="" alt="Masked Input" />
+                <div class="latency-pill" id="holePixelsPill">0 px bị che</div>
+              </div>
+              <div class="metrics-row">
+                <div class="metric-box">
+                  <span class="m-label">Diện tích lỗ</span>
+                  <span class="m-val" id="m-hole-pct">0.0%</span>
+                </div>
+                <div class="metric-box">
+                  <span class="m-label">Kích thước</span>
+                  <span class="m-val">256×256</span>
+                </div>
+                <div class="metric-box">
+                  <span class="m-label">Miền giá trị</span>
+                  <span class="m-val">[0, 1]</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 1: Dilated U-Net + PatchGAN -->
+            <div class="model-card" id="card-dilated_unet">
+              <div class="card-head">
+                <div>
+                  <div class="card-title" style="color:#60a5fa;">1. Dilated U-Net + PatchGAN</div>
+                  <div class="card-sub">Baseline · Dilated Conv (2,4,8,16) + U-Net Skip</div>
+                </div>
+                <span class="badge" style="background:rgba(59,130,246,0.2); color:#60a5fa;">Epoch 22</span>
+              </div>
+              <div class="card-img-wrap">
+                <img id="cardImg-dilated_unet" src="" alt="Dilated U-Net" />
+                <div class="winner-ribbon" id="win-dilated_unet" style="display:none;">🏆 Best</div>
+                <div class="latency-pill" id="lat-dilated_unet">-- ms</div>
+              </div>
+              <div class="metrics-row">
+                <div class="metric-box" id="box-psnr-dilated_unet">
+                  <span class="m-label">PSNR lỗ ↑</span>
+                  <span class="m-val" id="psnr-dilated_unet">-- dB</span>
+                </div>
+                <div class="metric-box" id="box-ssim-dilated_unet">
+                  <span class="m-label">SSIM ↑</span>
+                  <span class="m-val" id="ssim-dilated_unet">--</span>
+                </div>
+                <div class="metric-box" id="box-l1-dilated_unet">
+                  <span class="m-label">Hole L1 ↓</span>
+                  <span class="m-val" id="l1-dilated_unet">--</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: DeepFillv1 + Contextual Attention -->
+            <div class="model-card" id="card-deepfillv1">
+              <div class="card-head">
+                <div>
+                  <div class="card-title" style="color:#34d399;">2. DeepFillv1 + Contextual Attn</div>
+                  <div class="card-sub">Coarse-to-Fine · Mượn trực tiếp Patch 3×3 toàn ảnh</div>
+                </div>
+                <span class="badge" style="background:rgba(16,185,129,0.2); color:#34d399;">Epoch 16</span>
+              </div>
+              <div class="card-img-wrap">
+                <img id="cardImg-deepfillv1" src="" alt="DeepFillv1" />
+                <div class="winner-ribbon" id="win-deepfillv1" style="display:none;">🏆 Best</div>
+                <div class="latency-pill" id="lat-deepfillv1">-- ms</div>
+              </div>
+              <div class="metrics-row">
+                <div class="metric-box" id="box-psnr-deepfillv1">
+                  <span class="m-label">PSNR lỗ ↑</span>
+                  <span class="m-val" id="psnr-deepfillv1">-- dB</span>
+                </div>
+                <div class="metric-box" id="box-ssim-deepfillv1">
+                  <span class="m-label">SSIM ↑</span>
+                  <span class="m-val" id="ssim-deepfillv1">--</span>
+                </div>
+                <div class="metric-box" id="box-l1-deepfillv1">
+                  <span class="m-label">Hole L1 ↓</span>
+                  <span class="m-val" id="l1-deepfillv1">--</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: LaMa Fast Fourier Convolution (FFC) -->
+            <div class="model-card" id="card-lama_ffc">
+              <div class="card-head">
+                <div>
+                  <div class="card-title" style="color:#c084fc;">3. LaMa rút gọn (Fast Fourier FFC)</div>
+                  <div class="card-sub">9× FFC-ResBlock (25% Local + 75% Global 2D FFT)</div>
+                </div>
+                <span class="badge" id="badge-lama_ffc" style="background:rgba(168,85,247,0.2); color:#c084fc;">Epoch 22</span>
+              </div>
+              <div class="card-img-wrap">
+                <img id="cardImg-lama_ffc" src="" alt="LaMa FFC" />
+                <div class="winner-ribbon" id="win-lama_ffc" style="display:none;">🏆 Best</div>
+                <div class="latency-pill" id="lat-lama_ffc">-- ms</div>
+              </div>
+              <div class="metrics-row">
+                <div class="metric-box" id="box-psnr-lama_ffc">
+                  <span class="m-label">PSNR lỗ ↑</span>
+                  <span class="m-val" id="psnr-lama_ffc">-- dB</span>
+                </div>
+                <div class="metric-box" id="box-ssim-lama_ffc">
+                  <span class="m-label">SSIM ↑</span>
+                  <span class="m-val" id="ssim-lama_ffc">--</span>
+                </div>
+                <div class="metric-box" id="box-l1-lama_ffc">
+                  <span class="m-label">Hole L1 ↓</span>
+                  <span class="m-val" id="l1-lama_ffc">--</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Interactive Split-Screen Slider -->
+          <div class="compare-box">
+            <div class="compare-controls">
+              <div class="panel-title" style="margin-bottom:0;">
+                <span>🔍 Thanh Kéo So Sánh Trực Quan Từng Điểm Ảnh Giữa Các Model (Split-Screen Slider)</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span style="font-size:0.78rem; color:var(--text-muted);">Trái:</span>
+                <select id="splitLeftSelect" class="select-input" onchange="updateSplitImages()">
+                  <option value="dilated_unet" selected>1. Dilated U-Net + PatchGAN (Baseline)</option>
+                  <option value="deepfillv1">2. DeepFillv1 + Contextual Attention</option>
+                  <option value="masked">0. Ảnh Đục Lỗ Khuyết (Masked Input)</option>
+                  <option value="gt">Ảnh Gốc (Ground Truth)</option>
+                </select>
+                <span style="font-size:0.78rem; color:var(--text-muted);">Phải:</span>
+                <select id="splitRightSelect" class="select-input" onchange="updateSplitImages()">
+                  <option value="deepfillv1" selected>2. DeepFillv1 + Contextual Attention</option>
+                  <option value="lama_ffc">3. LaMa rút gọn (Fast Fourier FFC)</option>
+                  <option value="dilated_unet">1. Dilated U-Net + PatchGAN (Baseline)</option>
+                  <option value="gt">Ảnh Gốc (Ground Truth)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="split-layout">
+              <div class="split-viewer" id="splitViewer">
+                <img id="splitRightImg" src="" alt="Right Model" />
+                <div class="split-overlay" id="splitOverlay">
+                  <img id="splitLeftImg" src="" alt="Left Model" />
+                </div>
+                <div class="split-handle" id="splitHandle">⇄</div>
+              </div>
+
+              <div class="insight-card">
+                <h4>💡 Điểm Khác Biệt Cốt Lõi Giữa 3 Kiến Trúc</h4>
+                <ul class="insight-list">
+                  <li>
+                    <strong style="color:#60a5fa;">1. Dilated U-Net + PatchGAN (Baseline — Epoch 22):</strong>
+                    Mở rộng vùng tiếp nhận bằng chuỗi <em>Dilated Conv (d=2,4,8,16)</em> ở bottleneck 64×64 và nối tắt U-Net Skip Connections. Giữ dải màu biên mượt nhưng kết cấu ở tâm lỗ lớn hơi mịn.
+                  </li>
+                  <li>
+                    <strong style="color:#34d399;">2. DeepFillv1 + Contextual Attention (Epoch 16):</strong>
+                    Mạng 2 giai đoạn (Coarse-to-Fine) dùng nhánh <em>Contextual Attention</em> đối sánh Cosine và copy-paste trực tiếp các patch <code>3×3</code> từ vùng lành vào lỗ khuyết, làm vân lá/cỏ sắc nét hơn.
+                  </li>
+                  <li>
+                    <strong style="color:#c084fc;">3. LaMa rút gọn — Fast Fourier Convolution (Epoch 22):</strong>
+                    Biến đổi 75% kênh đặc trưng sang miền tần số bằng <code>2D Real FFT (rfft2/irfft2)</code>, giúp mạng có vùng tiếp nhận toàn bức ảnh ngay từ tầng sớm và duy trì cấu trúc toàn cục tốt nhất.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 2: GROUP BENCHMARK (3 MODELS)                                 -->
+    <!-- ================================================================= -->
+    <section id="tab-benchmark" class="tab-pane">
+      <div class="panel">
+        <div class="panel-title">
+          <span>📊 Bảng Tổng Hợp Kết Quả Test Trên 4.000 Cặp Ảnh Places365 (3 Kiến Trúc Của Nhóm)</span>
+          <span class="sub">Subset cố định 16.000 ảnh · seed = 2011 · sha256 = b27afaaf...ee9c</span>
+        </div>
+
+        <div class="bench-table-wrap">
+          <table class="bench-table">
+            <thead>
+              <tr>
+                <th>Mô Hình / Kiến Trúc</th>
+                <th>Best Ckpt</th>
+                <th>Bucket 10–20%<br/>(L1 ↓ / PSNR ↑ / SSIM ↑)</th>
+                <th>Bucket 20–30%<br/>(L1 ↓ / PSNR ↑ / SSIM ↑)</th>
+                <th>Bucket 30–40%<br/>(L1 ↓ / PSNR ↑ / SSIM ↑)</th>
+                <th>Bucket 40–50%<br/>(L1 ↓ / PSNR ↑ / SSIM ↑)</th>
+                <th>OVERALL (4.000 ảnh)<br/>(L1 ↓ / PSNR ↑ / SSIM ↑)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <strong style="color:#60a5fa;">1. Dilated U-Net + Global & Local PatchGAN</strong><br/>
+                  <span style="font-size:0.75rem; color:var(--text-muted);">Baseline chuẩn · Standard Conv2d + Dilated (2,4,8,16)</span>
+                </td>
+                <td>Epoch 22</td>
+                <td>0.0754 / 19.11 dB / 0.9217</td>
+                <td>0.0878 / 17.69 dB / 0.8528</td>
+                <td>0.1013 / 16.57 dB / 0.7694</td>
+                <td>0.1182 / 15.39 dB / 0.6708</td>
+                <td><strong>0.0957 / 17.19 dB / 0.8037</strong></td>
+              </tr>
+              <tr>
+                <td>
+                  <strong style="color:#34d399;">2. DeepFillv1: Coarse-to-Fine + Contextual Attention</strong><br/>
+                  <span style="font-size:0.75rem; color:var(--text-muted);">2-Stage Generator + Contextual Attention 3×3 Patch</span>
+                </td>
+                <td>Epoch 16</td>
+                <td>0.0722 / 19.54 dB / 0.9282</td>
+                <td>0.0882 / 17.74 dB / 0.8537</td>
+                <td>0.1011 / 16.68 dB / 0.7707</td>
+                <td>0.1165 / 15.62 dB / 0.6753</td>
+                <td><strong>0.0945 / 17.39 dB / 0.8070</strong></td>
+              </tr>
+              <tr>
+                <td>
+                  <strong style="color:#c084fc;">3. LaMa rút gọn: Fast Fourier Convolution (FFC)</strong><br/>
+                  <span style="font-size:0.75rem; color:var(--text-muted);">9× FFC-ResBlock (25% Local + 75% Global 2D FFT rfft2/irfft2)</span>
+                </td>
+                <td>Epoch 22</td>
+                <td class="best-cell">0.0666 / 20.16 dB / 0.9336</td>
+                <td class="best-cell">0.0797 / 18.53 dB / 0.8651</td>
+                <td class="best-cell">0.0906 / 17.53 dB / 0.7895</td>
+                <td class="best-cell">0.1029 / 16.60 dB / 0.7063</td>
+                <td class="best-cell">0.0850 / 18.20 dB / 0.8236 🏆</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 3: REPORT FIGURES GALLERY                                     -->
+    <!-- ================================================================= -->
+    <section id="tab-gallery" class="tab-pane">
+      <div class="gallery-grid">
+        <div class="gallery-card">
+          <h4>1. So sánh trực tiếp Dilated U-Net vs DeepFillv1 trên 4 cảnh cây thực tế</h4>
+          <img src="/static/report_figs/so_sanh_2_kien_truc_canh_cay.png" alt="So sánh 2 kiến trúc" onclick="openLightbox(this.src)" />
+        </div>
+        <div class="gallery-card">
+          <h4>2. Kết quả khôi phục trên tập Validation (4 mức độ che khuất — LaMa FFC)</h4>
+          <img src="/static/report_figs/lama_fig4.png" alt="LaMa Val Samples" onclick="openLightbox(this.src)" />
+        </div>
+        <div class="gallery-card">
+          <h4>3. Kết quả khôi phục trên tập Validation (Dilated U-Net Baseline)</h4>
+          <img src="/static/report_figs/unet_val_samples.png" alt="U-Net Val Samples" onclick="openLightbox(this.src)" />
+        </div>
+        <div class="gallery-card">
+          <h4>4. Biểu đồ Metric Test theo 4 Bucket lỗ khuyết (Dilated U-Net vs LaMa FFC)</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <img src="/static/report_figs/unet_fig1_buckets.png" alt="U-Net Buckets" onclick="openLightbox(this.src)" />
+            <img src="/static/report_figs/lama_fig1.png" alt="LaMa Buckets" onclick="openLightbox(this.src)" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="lightbox" id="lightbox" onclick="this.classList.remove('open')">
+    <img id="lightboxImg" src="" alt="Zoomed Figure" />
+  </div>
+
+  <script>
+    const imgCanvas = document.getElementById('imageCanvas');
+    const imgCtx = imgCanvas.getContext('2d');
+    const maskCanvas = document.getElementById('maskCanvas');
+    const maskCtx = maskCanvas.getContext('2d');
+    const cursorCanvas = document.getElementById('cursorCanvas');
+    const cursorCtx = cursorCanvas.getContext('2d');
+
+    const binMaskCanvas = document.createElement('canvas');
+    binMaskCanvas.width = 256;
+    binMaskCanvas.height = 256;
+    const binMaskCtx = binMaskCanvas.getContext('2d');
+
+    const ALL_3 = ['dilated_unet', 'deepfillv1', 'lama_ffc'];
+    let runMode = 'all'; // 'all' or single model id
+    let currentTool = 'brush';
+    let brushSize = 22;
+    let isDrawing = false;
+    let lastPt = null;
+    let rectStartPt = null;
+    let undoStack = [];
+    let presetsData = [];
+    let activePresetIdx = 0;
+
+    let currentViewMode = 'composite';
+    let latestResponse = null;
+    let isRunningInference = false;
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      initBinaryMask();
+      setupCanvasEvents();
+      setupSplitSlider();
+      await loadServerInfo();
+      await loadPresets();
+    });
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    function openLightbox(src) {
+      document.getElementById('lightboxImg').src = src;
+      document.getElementById('lightbox').classList.add('open');
+    }
+
+    function copyLink(spanId, btn) {
+      const txt = document.getElementById(spanId).textContent.trim();
+      if (!txt || txt.startsWith('Đang')) return;
+      navigator.clipboard.writeText(txt);
+      const old = btn.textContent;
+      btn.textContent = 'Đã Copy!';
+      setTimeout(() => { btn.textContent = old; }, 1500);
+    }
+
+    async function loadServerInfo() {
+      try {
+        const res = await fetch('/api/info');
+        const info = await res.json();
+        document.getElementById('hwText').textContent = `Server GPU: ${info.device_name}`;
+        if (info.public_url) {
+          document.getElementById('publicUrlText').textContent = info.public_url;
+        } else if (info.tunnel_status === 'starting') {
+          setTimeout(loadServerInfo, 2000);
+        } else {
+          document.getElementById('publicUrlText').textContent = info.lan_url;
+        }
+      } catch (err) {
+        document.getElementById('hwText').textContent = 'Offline';
+      }
+    }
+
+    function setRunMode(mode) {
+      runMode = mode;
+      ['all', 'dilated_unet', 'deepfillv1', 'lama_ffc'].forEach(k => {
+        const btn = document.getElementById('pill-' + k);
+        if (btn) btn.classList.toggle('active', k === mode);
+      });
+      const activeList = mode === 'all' ? ALL_3 : [mode];
+      ALL_3.forEach(id => {
+        const card = document.getElementById('card-' + id);
+        if (card) card.style.display = activeList.includes(id) ? 'flex' : 'none';
+      });
+      runInpaint();
+    }
+
+    // -----------------------------------------------------------------------
+    // Presets & Canvas
+    // -----------------------------------------------------------------------
+    async function loadPresets() {
+      const res = await fetch('/api/presets');
+      const data = await res.json();
+      presetsData = data.presets || [];
+      const grid = document.getElementById('presetGrid');
+      grid.innerHTML = '';
+
+      presetsData.forEach((p, idx) => {
+        const div = document.createElement('div');
+        div.className = 'preset-item' + (idx === 0 ? ' active' : '');
+        div.title = `${p.title} — ${p.description}`;
+        div.innerHTML = `
+          <img src="${p.image_url}" alt="${p.title}" />
+          <div class="preset-caption">${p.title}</div>
+        `;
+        div.onclick = () => selectPreset(idx);
+        grid.appendChild(div);
+      });
+
+      if (presetsData.length > 0) {
+        await selectPreset(0);
+      }
+    }
+
+    async function selectPreset(idx) {
+      activePresetIdx = idx;
+      document.querySelectorAll('.preset-item').forEach((el, i) => {
+        el.classList.toggle('active', i === idx);
+      });
+      const p = presetsData[idx];
+      await loadImageToCanvas(p.image_url);
+      await loadMaskToCanvas(p.mask_url);
+      await runInpaint();
+    }
+
+    async function restorePresetMask() {
+      if (presetsData[activePresetIdx]) {
+        saveUndoState();
+        await loadMaskToCanvas(presetsData[activePresetIdx].mask_url);
+        await runInpaint();
+      }
+    }
+
+    function initBinaryMask() {
+      binMaskCtx.fillStyle = '#000000';
+      binMaskCtx.fillRect(0, 0, 256, 256);
+      renderVisibleMask();
+    }
+
+    function saveUndoState() {
+      if (undoStack.length >= 15) undoStack.shift();
+      undoStack.push(binMaskCtx.getImageData(0, 0, 256, 256));
+    }
+
+    function undoMask() {
+      if (undoStack.length === 0) return;
+      const prev = undoStack.pop();
+      binMaskCtx.putImageData(prev, 0, 0);
+      renderVisibleMask();
+      if (document.getElementById('autoRunToggle').checked) runInpaint();
+    }
+
+    function clearMask() {
+      saveUndoState();
+      binMaskCtx.fillStyle = '#000000';
+      binMaskCtx.fillRect(0, 0, 256, 256);
+      renderVisibleMask();
+    }
+
+    function loadImageToCanvas(dataUrl) {
+      return new Promise((resolve) => {
+        const im = new Image();
+        im.onload = () => {
+          imgCtx.clearRect(0, 0, 256, 256);
+          imgCtx.drawImage(im, 0, 0, 256, 256);
+          resolve();
+        };
+        im.src = dataUrl;
+      });
+    }
+
+    function loadMaskToCanvas(dataUrl) {
+      return new Promise((resolve) => {
+        const im = new Image();
+        im.onload = () => {
+          binMaskCtx.fillStyle = '#000000';
+          binMaskCtx.fillRect(0, 0, 256, 256);
+          binMaskCtx.drawImage(im, 0, 0, 256, 256);
+          renderVisibleMask();
+          resolve();
+        };
+        im.src = dataUrl;
+      });
+    }
+
+    function renderVisibleMask() {
+      const src = binMaskCtx.getImageData(0, 0, 256, 256);
+      const dst = maskCtx.createImageData(256, 256);
+      const sData = src.data;
+      const dData = dst.data;
+      let holeCount = 0;
+
+      for (let i = 0; i < sData.length; i += 4) {
+        if (sData[i] > 127) {
+          holeCount++;
+          dData[i] = 239;
+          dData[i + 1] = 68;
+          dData[i + 2] = 68;
+          dData[i + 3] = 215;
+        } else {
+          dData[i + 3] = 0;
+        }
+      }
+      maskCtx.putImageData(dst, 0, 0);
+      const pct = ((holeCount / (256 * 256)) * 100).toFixed(1);
+      document.getElementById('holeRatioBadge').textContent = `Lỗ khuyết: ${pct}%`;
+    }
+
+    function getCanvasCoords(e) {
+      const rect = cursorCanvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const x = Math.max(0, Math.min(255, ((clientX - rect.left) / rect.width) * 256));
+      const y = Math.max(0, Math.min(255, ((clientY - rect.top) / rect.height) * 256));
+      return { x, y };
+    }
+
+    function drawCursorPreview(pt, rectPreview = null) {
+      cursorCtx.clearRect(0, 0, 256, 256);
+      if (rectPreview) {
+        cursorCtx.strokeStyle = '#ef4444';
+        cursorCtx.lineWidth = 1.5;
+        cursorCtx.fillStyle = 'rgba(239, 68, 68, 0.35)';
+        const x0 = Math.min(rectPreview.x0, rectPreview.x1);
+        const y0 = Math.min(rectPreview.y0, rectPreview.y1);
+        const w = Math.abs(rectPreview.x1 - rectPreview.x0);
+        const h = Math.abs(rectPreview.y1 - rectPreview.y0);
+        cursorCtx.fillRect(x0, y0, w, h);
+        cursorCtx.strokeRect(x0, y0, w, h);
+        return;
+      }
+      if (!pt || currentTool === 'rect') return;
+      cursorCtx.beginPath();
+      cursorCtx.arc(pt.x, pt.y, brushSize / 2, 0, Math.PI * 2);
+      cursorCtx.strokeStyle = currentTool === 'eraser' ? '#38bdf8' : '#ffffff';
+      cursorCtx.lineWidth = 1.5;
+      cursorCtx.stroke();
+    }
+
+    function paintStroke(pt1, pt2) {
+      binMaskCtx.save();
+      binMaskCtx.fillStyle = currentTool === 'eraser' ? '#000000' : '#ffffff';
+      binMaskCtx.strokeStyle = currentTool === 'eraser' ? '#000000' : '#ffffff';
+      binMaskCtx.lineWidth = brushSize;
+      binMaskCtx.lineCap = 'round';
+      binMaskCtx.lineJoin = 'round';
+
+      binMaskCtx.beginPath();
+      binMaskCtx.moveTo(pt1.x, pt1.y);
+      binMaskCtx.lineTo(pt2.x, pt2.y);
+      binMaskCtx.stroke();
+
+      binMaskCtx.beginPath();
+      binMaskCtx.arc(pt2.x, pt2.y, brushSize / 2, 0, Math.PI * 2);
+      binMaskCtx.fill();
+      binMaskCtx.restore();
+      renderVisibleMask();
+    }
+
+    function setupCanvasEvents() {
+      const stage = document.getElementById('canvasStage');
+
+      stage.addEventListener('mousedown', (e) => {
+        saveUndoState();
+        isDrawing = true;
+        const pt = getCanvasCoords(e);
+        if (currentTool === 'rect') {
+          rectStartPt = pt;
+        } else {
+          lastPt = pt;
+          paintStroke(pt, pt);
+        }
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        const rect = stage.getBoundingClientRect();
+        const inside =
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom;
+
+        if (!inside && !isDrawing) {
+          cursorCtx.clearRect(0, 0, 256, 256);
+          return;
+        }
+        const pt = getCanvasCoords(e);
+
+        if (isDrawing) {
+          if (currentTool === 'rect' && rectStartPt) {
+            drawCursorPreview(pt, { x0: rectStartPt.x, y0: rectStartPt.y, x1: pt.x, y1: pt.y });
+          } else if (lastPt) {
+            paintStroke(lastPt, pt);
+            lastPt = pt;
+            drawCursorPreview(pt);
+          }
+        } else {
+          drawCursorPreview(pt);
+        }
+      });
+
+      window.addEventListener('mouseup', (e) => {
+        if (!isDrawing) return;
+        isDrawing = false;
+        if (currentTool === 'rect' && rectStartPt) {
+          const pt = getCanvasCoords(e);
+          const x0 = Math.min(rectStartPt.x, pt.x);
+          const y0 = Math.min(rectStartPt.y, pt.y);
+          const w = Math.max(4, Math.abs(pt.x - rectStartPt.x));
+          const h = Math.max(4, Math.abs(pt.y - rectStartPt.y));
+          binMaskCtx.fillStyle = '#ffffff';
+          binMaskCtx.fillRect(x0, y0, w, h);
+          rectStartPt = null;
+          cursorCtx.clearRect(0, 0, 256, 256);
+          renderVisibleMask();
+        }
+        lastPt = null;
+        if (document.getElementById('autoRunToggle').checked) {
+          runInpaint();
+        }
+      });
+    }
+
+    function setTool(tool) {
+      currentTool = tool;
+      ['Brush', 'Eraser', 'Rect'].forEach(t => {
+        document.getElementById('tool' + t).classList.toggle('active', t.toLowerCase() === tool);
+      });
+    }
+
+    function updateBrushSize(val) {
+      brushSize = parseInt(val, 10);
+      document.getElementById('brushSizeVal').textContent = brushSize;
+    }
+
+    async function generateBucketMask(bucket) {
+      saveUndoState();
+      const res = await fetch('/api/generate_mask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bucket }),
+      });
+      const data = await res.json();
+      await loadMaskToCanvas(data.mask_url);
+      await runInpaint();
+    }
+
+    function handleUploadImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const im = new Image();
+        im.onload = async () => {
+          const s = Math.min(im.width, im.height);
+          const sx = (im.width - s) / 2;
+          const sy = (im.height - s) / 2;
+          imgCtx.clearRect(0, 0, 256, 256);
+          imgCtx.drawImage(im, sx, sy, s, s, 0, 0, 256, 256);
+          await runInpaint();
+        };
+        im.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // -----------------------------------------------------------------------
+    // Run All 3 Models Simultaneously
+    // -----------------------------------------------------------------------
+    async function runInpaint() {
+      if (isRunningInference) return;
+      isRunningInference = true;
+      const runBtn = document.getElementById('runBtn');
+      const selected_models = runMode === 'all' ? ALL_3 : [runMode];
+      runBtn.textContent = `⏳ Đang chạy ${selected_models.length} model trên GPU Server...`;
+
+      try {
+        const image_b64 = imgCanvas.toDataURL('image/png');
+        const mask_b64 = binMaskCanvas.toDataURL('image/png');
+
+        const res = await fetch('/api/inpaint', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image_b64, mask_b64, selected_models }),
+        });
+
+        if (!res.ok) throw new Error('Inference API failed');
+        latestResponse = await res.json();
+        renderResults();
+      } catch (err) {
+        console.error(err);
+      } finally {
+        isRunningInference = false;
+        runBtn.textContent = '⚡ Chạy So Sánh 3 Model Ngay';
+      }
+    }
+
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      ['composite', 'raw', 'heatmap'].forEach(m => {
+        document.getElementById('view-' + m).classList.toggle('active', m === mode);
+      });
+      renderResults();
+    }
+
+    function renderResults() {
+      if (!latestResponse) return;
+      const data = latestResponse;
+
+      document.getElementById('cardImg-masked').src = data.masked_url;
+      document.getElementById('holePixelsPill').textContent = `${data.hole_pixels.toLocaleString()} px bị che`;
+      document.getElementById('m-hole-pct').textContent = `${data.hole_ratio_pct}%`;
+      document.getElementById('holeRatioBadge').textContent = `Lỗ khuyết: ${data.hole_ratio_pct}%`;
+
+      const models = data.models || [];
+      let bestPsnr = -Infinity;
+      let bestSsim = -Infinity;
+      let bestL1 = Infinity;
+      let overallWinnerId = null;
+
+      models.forEach(m => {
+        if (m.metrics.psnr > bestPsnr) {
+          bestPsnr = m.metrics.psnr;
+          overallWinnerId = m.id;
+        }
+        if (m.metrics.ssim > bestSsim) bestSsim = m.metrics.ssim;
+        if (m.metrics.l1 < bestL1) bestL1 = m.metrics.l1;
+      });
+
+      models.forEach(m => {
+        const urlKey =
+          currentViewMode === 'raw'
+            ? 'raw_url'
+            : currentViewMode === 'heatmap'
+            ? 'heatmap_url'
+            : 'composite_url';
+
+        const imgEl = document.getElementById(`cardImg-${m.id}`);
+        if (imgEl) imgEl.src = m[urlKey];
+
+        const latEl = document.getElementById(`lat-${m.id}`);
+        if (latEl) latEl.textContent = `${m.latency_ms} ms`;
+
+        const badgeEl = document.getElementById(`badge-${m.id}`);
+        if (badgeEl && m.badge) badgeEl.textContent = m.badge;
+
+        const psnrEl = document.getElementById(`psnr-${m.id}`);
+        const ssimEl = document.getElementById(`ssim-${m.id}`);
+        const l1El = document.getElementById(`l1-${m.id}`);
+        if (psnrEl) psnrEl.textContent = `${m.metrics.psnr} dB`;
+        if (ssimEl) ssimEl.textContent = `${m.metrics.ssim}`;
+        if (l1El) l1El.textContent = `${m.metrics.l1}`;
+
+        document.getElementById(`box-psnr-${m.id}`).classList.toggle('best', models.length > 1 && m.metrics.psnr === bestPsnr);
+        document.getElementById(`box-ssim-${m.id}`).classList.toggle('best', models.length > 1 && m.metrics.ssim === bestSsim);
+        document.getElementById(`box-l1-${m.id}`).classList.toggle('best', models.length > 1 && m.metrics.l1 === bestL1);
+
+        const cardEl = document.getElementById(`card-${m.id}`);
+        const winEl = document.getElementById(`win-${m.id}`);
+        const isWinner = models.length > 1 && m.id === overallWinnerId;
+        if (cardEl) cardEl.classList.toggle('winner', isWinner);
+        if (winEl) winEl.style.display = isWinner ? 'block' : 'none';
+      });
+
+      updateSplitImages();
+    }
+
+    function getUrlForSplitKey(key) {
+      if (!latestResponse) return '';
+      if (key === 'masked') return latestResponse.masked_url;
+      if (key === 'gt') return latestResponse.gt_url;
+      const found = (latestResponse.models || []).find(m => m.id === key);
+      if (!found) {
+        if (latestResponse.models && latestResponse.models.length > 0) {
+          const fb = latestResponse.models[0];
+          return currentViewMode === 'raw' ? fb.raw_url : currentViewMode === 'heatmap' ? fb.heatmap_url : fb.composite_url;
+        }
+        return latestResponse.gt_url;
+      }
+      return currentViewMode === 'raw'
+        ? found.raw_url
+        : currentViewMode === 'heatmap'
+        ? found.heatmap_url
+        : found.composite_url;
+    }
+
+    function updateSplitImages() {
+      if (!latestResponse) return;
+      const leftKey = document.getElementById('splitLeftSelect').value;
+      const rightKey = document.getElementById('splitRightSelect').value;
+      document.getElementById('splitLeftImg').src = getUrlForSplitKey(leftKey);
+      document.getElementById('splitRightImg').src = getUrlForSplitKey(rightKey);
+    }
+
+    function setupSplitSlider() {
+      const viewer = document.getElementById('splitViewer');
+      const overlay = document.getElementById('splitOverlay');
+      const handle = document.getElementById('splitHandle');
+      let dragging = false;
+
+      const moveSplit = (clientX) => {
+        const rect = viewer.getBoundingClientRect();
+        const pct = Math.max(2, Math.min(98, ((clientX - rect.left) / rect.width) * 100));
+        overlay.style.width = pct + '%';
+        handle.style.left = pct + '%';
+      };
+
+      viewer.addEventListener('mousedown', (e) => {
+        dragging = true;
+        moveSplit(e.clientX);
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (dragging) moveSplit(e.clientX);
+      });
+      window.addEventListener('mouseup', () => {
+        dragging = false;
+      });
+    }
+
+    function downloadStrip() {
+      if (!latestResponse || !latestResponse.strip_url) return;
+      const a = document.createElement('a');
+      a.href = latestResponse.strip_url;
+      a.download = `so_sanh_3_model_${Date.now()}.png`;
+      a.click();
+    }
+  </script>
+</body>
+</html>

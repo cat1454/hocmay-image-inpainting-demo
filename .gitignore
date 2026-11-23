@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.pt
+*.pth
+
+# Local configuration, credentials and editor state
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+.playwright-mcp/
+
+# Machine-generated reports and office documents
+*.pdf
+*.docx
+~$*
+
+# OS metadata
+.DS_Store
+Thumbs.db
