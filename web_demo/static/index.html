@@ -2162,7 +2162,15 @@
         setRunStatus(`Hoàn tất · ${latestResponse.models?.length || 0} model`);
       } catch (err) {
         console.error(err);
-        setRunStatus(err.message || 'Có lỗi khi chạy mô hình.');
+        if (err instanceof TypeError) {
+          document.getElementById('hwText').textContent = 'Offline';
+          const isQuickTunnel = location.hostname.endsWith('.trycloudflare.com');
+          setRunStatus(isQuickTunnel
+            ? 'Máy chủ demo không phản hồi. Kiểm tra ứng dụng trên máy host.'
+            : 'Không kết nối được API. Chạy run_web_demo.bat rồi mở http://127.0.0.1:8000.');
+        } else {
+          setRunStatus(err.message || 'Có lỗi khi chạy mô hình.');
+        }
       } finally {
         isRunningInference = false;
         updateRunButton();
